@@ -98,8 +98,19 @@
                     const href = link.getAttribute('href') || '';
                     const lowerHref = href.toLowerCase();
                     
-                    // Check if href ends with any document extension
-                    const isDocLink = docExtensions.some(ext => lowerHref.endsWith(ext));
+                    // Check if href ends with any document extension OR contains objectName parameter with document extension
+                    let isDocLink = docExtensions.some(ext => lowerHref.endsWith(ext));
+                    
+                    // Also check for objectName parameter in URL (for Amazon secure-download links)
+                    if (!isDocLink && lowerHref.includes('objectname=')) {
+                        isDocLink = docExtensions.some(ext => lowerHref.includes('objectname=') && lowerHref.includes(ext));
+                    }
+                    
+                    // Also check link text content for file extensions
+                    if (!isDocLink) {
+                        const linkText = link.textContent.trim().toLowerCase();
+                        isDocLink = docExtensions.some(ext => linkText.endsWith(ext));
+                    }
                     
                     if (isDocLink) {
                         link.classList.add('tm-highlighted-link');
