@@ -69,6 +69,9 @@
         
         let totalLinksFound = 0;
         
+        // Document file extensions to look for
+        const docExtensions = ['.pdf', '.jpg', '.jpeg', '.png', '.gif', '.doc', '.docx', '.xls', '.xlsx', '.txt', '.zip', '.rar'];
+        
         // Process each seller communication
         for (let i = 0; i < sellerHeaders.length; i++) {
             const header = sellerHeaders[i];
@@ -89,11 +92,9 @@
                 // Find all links in this communication
                 const links = contentRegion.querySelectorAll('a');
                 
-                // Document file extensions to look for
-                const docExtensions = ['.pdf', '.jpg', '.jpeg', '.png', '.gif', '.doc', '.docx', '.xls', '.xlsx', '.txt', '.zip', '.rar'];
-                
                 let linksInThisComm = 0;
-                links.forEach(link => {
+                for (let j = 0; j < links.length; j++) {
+                    const link = links[j];
                     const href = link.getAttribute('href') || '';
                     const lowerHref = href.toLowerCase();
                     
@@ -108,7 +109,7 @@
                         totalLinksFound++;
                         linksInThisComm++;
                     }
-                });
+                }
                 
                 console.log(`Communication ${i + 1}: Found ${linksInThisComm} document links out of ${links.length} total links`);
             }
