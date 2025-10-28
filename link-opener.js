@@ -89,15 +89,28 @@
                 // Find all links in this communication
                 const links = contentRegion.querySelectorAll('a');
                 
+                // Document file extensions to look for
+                const docExtensions = ['.pdf', '.jpg', '.jpeg', '.png', '.gif', '.doc', '.docx', '.xls', '.xlsx', '.txt', '.zip', '.rar'];
+                
+                let linksInThisComm = 0;
                 links.forEach(link => {
-                    link.classList.add('tm-highlighted-link');
-                    link.style.background = 'yellow';
-                    link.style.border = '2px solid red';
-                    link.style.padding = '2px 4px';
-                    totalLinksFound++;
+                    const href = link.getAttribute('href') || '';
+                    const lowerHref = href.toLowerCase();
+                    
+                    // Check if href ends with any document extension
+                    const isDocLink = docExtensions.some(ext => lowerHref.endsWith(ext));
+                    
+                    if (isDocLink) {
+                        link.classList.add('tm-highlighted-link');
+                        link.style.background = 'yellow';
+                        link.style.border = '2px solid red';
+                        link.style.padding = '2px 4px';
+                        totalLinksFound++;
+                        linksInThisComm++;
+                    }
                 });
                 
-                console.log(`Communication ${i + 1}: Found ${links.length} links`);
+                console.log(`Communication ${i + 1}: Found ${linksInThisComm} document links out of ${links.length} total links`);
             }
             
             // Small delay between processing communications
