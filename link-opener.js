@@ -10,12 +10,107 @@
 // @match        https://paragon-eu.amazon.com/hz/view-case?*
 // @match        https://paragon-na.amazon.com/hz/view-case?*
 // @match        https://paragon-fe.amazon.com/hz/view-case?*
+// @match        https://paragon-eu.amazon.com/hz/view-case?*
+// @match        https://paragon-na.amazon.com/hz/view-case?*
+// @match        https://paragon-fe.amazon.com/hz/view-case?*
 // @grant        none
 // ==/UserScript==
 
 (function () {
   "use strict";
+(function () {
+  "use strict";
 
+  // Create buttons in header or floating position
+  function createFloatingButton() {
+    // Try to find the target container
+    const targetContainer = document.querySelector(
+      "#page-body > div > div > div > div > div > div > div > div > div:nth-child(1) > div > div > div:nth-child(3) > div > div > div.dvr-grid_GL0L3 > div > div:nth-child(2) > div > div > div > section > div > div.parent_WyMkx.xl_Z2eTb.column_L4Hlv > div:nth-child(1) > section > header > div > div"
+    );
+
+    // Create button container
+    const buttonWrapper = document.createElement("div");
+    buttonWrapper.className = "child_j_Mug";
+    buttonWrapper.id = "explore-links-wrapper";
+
+    const exploreBtn = document.createElement("button");
+    exploreBtn.id = "explore-links-btn";
+    exploreBtn.className = "tertiary";
+    exploreBtn.type = "button";
+    exploreBtn.textContent = "Explore Links";
+    // Apply full styles for the explore button (always)
+    exploreBtn.style.cssText = `
+            padding: 12px 24px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: background-color 0.3s;
+        `;
+
+    exploreBtn.addEventListener("click", exploreLinks);
+
+    // Create download button wrapper
+    const downloadWrapper = document.createElement("div");
+    downloadWrapper.className = "child_j_Mug";
+    downloadWrapper.id = "download-all-wrapper";
+    downloadWrapper.style.display = "none";
+
+    const downloadBtn = document.createElement("button");
+    downloadBtn.id = "download-all-btn";
+    downloadBtn.className = "tertiary";
+    downloadBtn.type = "button";
+    downloadBtn.textContent = "Download All";
+    // Apply full styles for the download button (always)
+    downloadBtn.style.cssText = `
+            padding: 12px 24px;
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: background-color 0.3s;
+        `;
+
+    downloadBtn.addEventListener("click", downloadAllLinks);
+
+    buttonWrapper.appendChild(exploreBtn);
+    downloadWrapper.appendChild(downloadBtn);
+
+    // If target container found, append there; otherwise append wrappers directly to body
+    if (targetContainer) {
+      targetContainer.appendChild(buttonWrapper);
+      targetContainer.appendChild(downloadWrapper);
+    } else {
+      console.warn(
+        "Target container not found, appending buttons directly to body"
+      );
+      // Position the button wrapper in a fixed location so it behaves like the previous floating container
+      buttonWrapper.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                z-index: 10000;
+                display: flex;
+                gap: 10px;
+            `;
+      // Ensure download wrapper sits next to the button wrapper when appended to body
+      downloadWrapper.style.cssText = `
+                display: inline-block;
+                margin-left: 8px;
+            `;
+
+      document.body.appendChild(buttonWrapper);
+      document.body.appendChild(downloadWrapper);
+    }
+  }
   // Create buttons in header or floating position
   function createFloatingButton() {
     // Try to find the target container
@@ -350,7 +445,52 @@
       downloadBtn.textContent = originalText;
     }, 3000);
   }
+  // Function to download all highlighted links
+  async function downloadAllLinks() {
+    const downloadBtn = document.getElementById("download-all-btn");
+    const highlightedLinks = document.querySelectorAll(".tm-highlighted-link");
 
+    if (highlightedLinks.length === 0) {
+      alert('No links to download. Please click "Explore Links" first.');
+      return;
+    }
+
+    downloadBtn.disabled = true;
+    const originalText = downloadBtn.textContent;
+
+    console.log(`Starting download of ${highlightedLinks.length} files...`);
+
+    // Download each link with a delay
+    for (let i = 0; i < highlightedLinks.length; i++) {
+      const link = highlightedLinks[i];
+      downloadBtn.textContent = `Downloading ${i + 1}/${
+        highlightedLinks.length
+      }`;
+
+      // Click the link to trigger download
+      link.click();
+
+      console.log(`Downloaded: ${link.textContent.trim()}`);
+
+      // Wait 1.5 seconds between downloads to avoid overwhelming browser/server
+      if (i < highlightedLinks.length - 1) {
+        await sleep(1500);
+      }
+    }
+
+    downloadBtn.textContent = `✓ Downloaded ${highlightedLinks.length} files`;
+    downloadBtn.disabled = false;
+
+    // Reset button text after 3 seconds
+    setTimeout(() => {
+      downloadBtn.textContent = originalText;
+    }, 3000);
+  }
+
+  // Helper function for delays
+  function sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
   // Helper function for delays
   function sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
@@ -365,6 +505,16 @@
       createFloatingButton();
     }
   }
+  // Initialize when page loads
+  function init() {
+    // Wait for page to be ready
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", createFloatingButton);
+    } else {
+      createFloatingButton();
+    }
+  }
 
+  init();
   init();
 })();
